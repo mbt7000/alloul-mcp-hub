@@ -1,0 +1,27 @@
+identity.alloul.com {
+    reverse_proxy identity:8001
+}
+reasoning.alloul.com {
+    reverse_proxy reasoning:8002
+}
+knowledge.alloul.com {
+    reverse_proxy knowledge:8003
+}
+audit.alloul.com {
+    reverse_proxy audit:8004
+}
+analytics.alloul.com {
+    reverse_proxy analytics:8005
+}
+workspace.alloul.com {
+    reverse_proxy workspace:8006
+}
+billing.alloul.com {
+    reverse_proxy billing:8007
+}
+docintel.handex.alloul.com {
+    reverse_proxy docintel:8008
+}
+workflow.handex.alloul.com {
+    reverse_proxy workflow:8009
+}

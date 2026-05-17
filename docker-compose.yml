@@ -1,0 +1,79 @@
+version: "3.9"
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: alloul_hub
+      POSTGRES_USER: alloul
+      POSTGRES_PASSWORD: localdev
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_models:/root/.ollama
+    ports: ["11434:11434"]
+
+  identity:
+    build: ./core/identity
+    ports: ["8001:8001"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+  reasoning:
+    build: ./core/reasoning
+    ports: ["8002:8002"]
+    env_file: .env
+    depends_on: [postgres, redis, ollama]
+
+  knowledge:
+    build: ./core/knowledge
+    ports: ["8003:8003"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+  audit:
+    build: ./core/audit
+    ports: ["8004:8004"]
+    env_file: .env
+    depends_on: [postgres]
+
+  analytics:
+    build: ./core/analytics
+    ports: ["8005:8005"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+  workspace:
+    build: ./product/workspace
+    ports: ["8006:8006"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+  billing:
+    build: ./product/billing
+    ports: ["8007:8007"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+  docintel:
+    build: ./handex/docintel
+    ports: ["8008:8008"]
+    env_file: .env
+    depends_on: [postgres]
+
+  workflow:
+    build: ./handex/workflow
+    ports: ["8009:8009"]
+    env_file: .env
+    depends_on: [postgres, redis]
+
+volumes:
+  pg_data:
+  ollama_models:

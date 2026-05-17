@@ -1,0 +1,35 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: alloul_hub_test
+          POSTGRES_USER: alloul
+          POSTGRES_PASSWORD: testpass
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    strategy:
+      matrix:
+        server: [core/identity, core/reasoning, core/knowledge, core/audit, core/analytics, product/workspace, product/billing, handex/docintel, handex/workflow]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Test ${{ matrix.server }}
+        working-directory: ${{ matrix.server }}
+        env:
+          DATABASE_URL: postgresql+asyncpg://alloul:testpass@localhost:5432/alloul_hub_test
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: test-secret
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          uv sync --all-extras
+          uv run ruff check src/
+          uv run mypy src/
+          uv run pytest tests/ -v --cov=src --cov-fail-under=80
