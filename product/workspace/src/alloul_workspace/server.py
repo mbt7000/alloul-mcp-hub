@@ -18,10 +18,6 @@ def _adapter(product: str, settings: Settings) -> HTTPBackendAdapter:
 def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("product.workspace", version="0.1.0")
 
-    @mcp.on_startup
-    async def startup() -> None:
-        await init_pool(settings.database_url)
-        log.info("product.workspace started")
 
     # ── CRM ──────────────────────────────────────────────────
 

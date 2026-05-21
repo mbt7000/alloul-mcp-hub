@@ -1,0 +1,134 @@
+version: "3.9"
+
+networks:
+  mcp-net:
+    driver: bridge
+
+services:
+  mcp-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: mcp-postgres
+    environment:
+      POSTGRES_DB: alloul_hub
+      POSTGRES_USER: alloul
+      POSTGRES_PASSWORD: strongpassword
+    volumes:
+      - mcp_pg_data:/var/lib/postgresql/data
+    networks: [mcp-net]
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alloul"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  identity:
+    build:
+      context: .
+      dockerfile: core/identity/Dockerfile
+    container_name: mcp-identity
+    ports: ["8021:8001"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+      REDIS_URL: redis://alloul-redis:6379/1
+      JWT_SECRET_KEY: 
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  audit:
+    build:
+      context: .
+      dockerfile: core/audit/Dockerfile
+    container_name: mcp-audit
+    ports: ["8024:8004"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  reasoning:
+    build:
+      context: .
+      dockerfile: core/reasoning/Dockerfile
+    container_name: mcp-reasoning
+    ports: ["8022:8002"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+      REDIS_URL: redis://alloul-redis:6379/1
+      ANTHROPIC_API_KEY: 
+      JWT_SECRET_KEY: 
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  analytics:
+    build:
+      context: .
+      dockerfile: core/analytics/Dockerfile
+    container_name: mcp-analytics
+    ports: ["8025:8005"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+      REDIS_URL: redis://alloul-redis:6379/1
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  billing:
+    build:
+      context: .
+      dockerfile: product/billing/Dockerfile
+    container_name: mcp-billing
+    ports: ["8027:8007"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+      STRIPE_SECRET_KEY: 
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  workspace:
+    build:
+      context: .
+      dockerfile: product/workspace/Dockerfile
+    container_name: mcp-workspace
+    ports: ["8026:8006"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+      REDIS_URL: redis://alloul-redis:6379/1
+      ALLOULQ_BACKEND_URL: http://172.17.0.1:8000
+      HANDEX_BACKEND_URL: http://172.17.0.1:8010
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+  workflow:
+    build:
+      context: .
+      dockerfile: handex/workflow/Dockerfile
+    container_name: mcp-workflow
+    ports: ["8029:8009"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alloul:strongpassword@mcp-postgres:5432/alloul_hub
+    networks: [mcp-net]
+    depends_on:
+      mcp-postgres:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  mcp_pg_data:

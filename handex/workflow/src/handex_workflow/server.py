@@ -16,10 +16,6 @@ log = structlog.get_logger()
 def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("handex.workflow", version="0.1.0")
 
-    @mcp.on_startup
-    async def startup() -> None:
-        await init_pool(settings.database_url)
-        log.info("handex.workflow started")
 
     @mcp.tool()
     async def workflow_define(

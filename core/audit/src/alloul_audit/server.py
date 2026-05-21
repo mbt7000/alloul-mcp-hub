@@ -15,10 +15,6 @@ log = structlog.get_logger()
 def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("alloul.audit", version="0.1.0")
 
-    @mcp.on_startup
-    async def startup() -> None:
-        await init_pool(settings.database_url)
-        log.info("alloul.audit started")
 
     @mcp.tool()
     async def audit_write(

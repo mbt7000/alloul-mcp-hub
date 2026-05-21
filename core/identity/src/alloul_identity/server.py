@@ -29,10 +29,6 @@ def _gen_employee_code(prefix: str) -> str:
 def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("alloul.identity", version="0.1.0")
 
-    @mcp.on_startup
-    async def startup() -> None:
-        await init_pool(settings.database_url)
-        log.info("alloul.identity started")
 
     @mcp.tool()
     async def identity_whoami(token: str) -> dict[str, Any]:

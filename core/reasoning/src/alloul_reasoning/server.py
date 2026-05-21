@@ -27,12 +27,6 @@ def create_server(settings: Settings) -> FastMCP:
         providers["deepseek"] = DeepSeekProvider(settings)
     providers["ollama"] = OllamaProvider(settings)
 
-    @mcp.on_startup
-    async def startup() -> None:
-        nonlocal _redis
-        await init_pool(settings.database_url)
-        _redis = aioredis.from_url(settings.redis_url, decode_responses=True)
-        log.info("alloul.reasoning started", providers=list(providers.keys()))
 
     async def _run(req: LLMRequest) -> dict[str, Any]:
         chain = await select_chain(req, providers)

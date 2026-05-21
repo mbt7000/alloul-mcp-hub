@@ -15,10 +15,6 @@ log = structlog.get_logger()
 def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("product.billing", version="0.1.0")
 
-    @mcp.on_startup
-    async def startup() -> None:
-        await init_pool(settings.database_url)
-        log.info("product.billing started")
 
     @mcp.tool()
     async def billing_list_plans(product: str) -> dict[str, Any]:

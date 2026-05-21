@@ -1,0 +1,9 @@
+ARG SERVER_PATH
+FROM python:3.11-slim
+WORKDIR /app
+RUN pip install uv
+ARG SERVER_PATH
+COPY shared/ /app/shared/
+COPY /pyproject.toml .
+RUN uv sync --no-dev 2>/dev/null || true
+COPY /src/ src/

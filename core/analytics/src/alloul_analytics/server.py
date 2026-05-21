@@ -17,12 +17,6 @@ def create_server(settings: Settings) -> FastMCP:
     mcp = FastMCP("alloul.analytics", version="0.1.0")
     _redis: aioredis.Redis | None = None
 
-    @mcp.on_startup
-    async def startup() -> None:
-        nonlocal _redis
-        await init_pool(settings.database_url)
-        _redis = aioredis.from_url(settings.redis_url, decode_responses=True)
-        log.info("alloul.analytics started")
 
     async def _cached(key: str, fn: Any) -> Any:
         if _redis:
